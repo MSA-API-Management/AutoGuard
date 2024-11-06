@@ -1,0 +1,33 @@
+name: 'AutoGuard'
+description: 'AutoGuard finds breaking API changes in Spring REST APIs during pull requests'
+inputs:
+  mvn_src_path:
+    default: '${{github.workspace}}'
+  base_ref: 
+    default: '${{github.base_ref}}'
+  head_ref:
+    default: '${{github.head_ref}}'
+    
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: '${{inputs.base_ref}}'
+    - uses: MSA-API-Management/AutoOAS-ci@v1
+      with:
+        mvn_src_path: ${{inputs.mvn_src_path}}
+        artifact_name: 'base-OAS'
+    - uses: actions/checkout@v4
+      with: 
+        ref: '${{inputs.head_ref}}'
+    - uses: MSA-API-Management/AutoOAS-ci@v1
+      with:
+        mvn_src_path: ${{inputs.mvn_src_path}}
+        artifact_name: 'head-OAS'
+    - uses: actions/download-artifact@v4
+    - uses: MSA-API-Management/autoOAS-diff@v1
+      with:
+        old_dir: 'base-OAS'
+        new_dir: 'head-OAS'
