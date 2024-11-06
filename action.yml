@@ -15,7 +15,7 @@ runs:
     - uses: actions/checkout@v4
       with:
         ref: '${{inputs.base_ref}}'
-    - uses: MSA-API-Management/AutoOAS-ci@v1
+    - uses: MSA-API-Management/AutoOAS-action@v1
       with:
         mvn_src_path: ${{inputs.mvn_src_path}}
         artifact_name: 'base-OpenAPI'
@@ -23,13 +23,13 @@ runs:
     - uses: actions/checkout@v4
       with: 
         ref: '${{inputs.head_ref}}'
-    - uses: MSA-API-Management/AutoOAS-ci@v1
+    - uses: MSA-API-Management/AutoOAS-action@v1
       with:
         mvn_src_path: ${{inputs.mvn_src_path}}
         artifact_name: 'head-OpenAPI'
     - uses: AutoModality/action-clean@v1
     - uses: actions/download-artifact@v4
-    - uses: MSA-API-Management/autoOAS-diff@v1
+    - uses: MSA-API-Management/AutoOAS-diff-action@v1
       with:
-        old_dir: 'base-OAS'
-        new_dir: 'head-OAS'
+        old_dir: 'base-OpenAPI'
+        new_dir: 'head-OpenAPI'
