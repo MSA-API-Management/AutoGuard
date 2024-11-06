@@ -19,6 +19,7 @@ runs:
       with:
         mvn_src_path: ${{inputs.mvn_src_path}}
         artifact_name: 'base-OAS'
+    - uses: AutoModality/action-clean@v1
     - uses: actions/checkout@v4
       with: 
         ref: '${{inputs.head_ref}}'
@@ -26,6 +27,7 @@ runs:
       with:
         mvn_src_path: ${{inputs.mvn_src_path}}
         artifact_name: 'head-OAS'
+    - uses: AutoModality/action-clean@v1
     - uses: actions/download-artifact@v4
     - uses: MSA-API-Management/autoOAS-diff@v1
       with:
