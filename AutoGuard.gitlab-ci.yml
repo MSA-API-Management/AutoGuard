@@ -1,0 +1,101 @@
+spec:
+  inputs:
+    mvn_src_dir:
+    base_ref:
+      type: string 
+      default: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    head_ref:
+      type: string 
+      default: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+---
+
+.autoGuard:
+  image: "docker"
+  services:
+    - docker:dind
+  
+  before_script:
+    - docker pull alexx882/auto-oas:1.0
+    - docker pull openapitools/openapi-diff:latest
+  script: 
+    - git fetch
+
+    - git checkout $[[inputs.base_ref]]
+    - docker run -v $[[ inputs.mvn_src_dir ]]:/project alexx882/auto-oas:1.0 /project /project/autooas-$[[inputs.base_ref]]/oas
+
+    - git checkout $[[inputs.head_ref]]
+    - docker run -v $[[ inputs.mvn_src_dir ]]:/project alexx882/auto-oas:1.0 /project /project/autooas-$[[inputs.head_ref]]/oas
+
+
+    - |
+      OLD_DIR=autooas-$[[inputs.base_ref]]
+      NEW_DIR=autooas-$[[inputs.head_ref]]
+
+      set +e
+      EMPTY_OAS='{  "openapi" : "3.0.1",  "info" : {    "title" : "",    "description" : "Spring Profile: ???",    "version" : ""  },  "paths" : {  },    "components" : {    "schemas" : {    }  }}'
+      
+      echo $EMPTY_OAS > empty.json
+      
+      OLD_FILES=$(find "$OLD_DIR" -type f | sed "s|$OLD_DIR/||" | sort)
+      NEW_FILES=$(find "$NEW_DIR" -type f | sed "s|$NEW_DIR/||" | sort)
+
+      printf "%s\n" $OLD_FILES > old_files
+      printf "%s\n" $NEW_FILES > new_files
+    
+      COMMON_FILES=$(comm -12 old_files new_files)
+      OTHER_FILES=$(comm -3 old_files new_files)
+
+      STATUS=0
+      
+      mkdir oas_diff
+      
+      for p in $COMMON_FILES; do
+        printf "\x20\n\x20\nAnalyzing existing configuration $p\n"
+        docker run --rm -t \
+          -v $(pwd):/specs \
+          openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/$OLD_DIR/$p /specs/$NEW_DIR/$p
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -eq 1 ]; then
+          echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
+        fi
+        STATUS=$((STATUS + EXIT_CODE))
+      done
+
+      for p in $OTHER_FILES; do
+        if [ -f "$OLD_DIR/$p" ]; then
+          printf "\x20\n\x20\nAnalyzing deleted configuration $p\n"
+          docker run --rm -t \
+            -v $(pwd):/specs \
+            openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/$OLD_DIR/$p /specs/empty.json
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
+          fi
+          STATUS=$((STATUS + EXIT_CODE))
+        else
+          printf "\x20\n\x20\nAnalyzing added configuration $p\n"
+          docker run --rm -t \
+            -v $(pwd):/specs \
+            openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/empty.json /specs/$NEW_DIR/$p
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
+          fi
+          STATUS=$((STATUS + EXIT_CODE))
+        fi
+      done
+      
+      set -e
+
+      if [ $STATUS -gt 0 ]; then 
+        echo -e "\e[31mBreaking changes detected"
+        exit 1
+      fi
+
+  artifacts:
+    when: always
+    name: "OpenAPI specifications"
+    paths:
+      - "autooas-$[[inputs.base_ref]]/oas*"
+      - "autooas-$[[inputs.head_ref]]/oas*"
+      - "oas_diff/*"
