@@ -1,8 +1,8 @@
 # AutoGuard
-This action uses AutoOAS and OpenAPI-diff to find breaking API changes in Spring REST APIs.
+This action uses AutoGuard-spec (currently implemented with [AutoOAS](https://github.com/MSA-API-Management/AutoOAS-action)) and [AutoGuard-diff](https://github.com/MSA-API-Management/AutoGuard-diff-action) to find breaking REST API changes in Java Spring Boot web services.
 
-# Usage
-## GitHub
+## Usage
+### GitHub action
 ~~~yml
 - uses: MSA-API-Management/AutoGuard@v1
   with:
@@ -16,7 +16,7 @@ This action uses AutoOAS and OpenAPI-diff to find breaking API changes in Spring
     # default: '${{github.head_ref}}' (Head branch reference of a pull request)
     head_ref:
 ~~~
-## GitLab 
+### GitLab template
 ~~~yml
 include:
   - local: 'AutoGuard.gitlab-ci.yml'
