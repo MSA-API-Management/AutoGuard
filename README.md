@@ -23,7 +23,7 @@ The action uses AutoGuard-spec (currently implemented with [AutoOAS](https://git
 The template implements the AutoGuard-spec (again implemented with [AutoOAS](https://github.com/MSA-API-Management/AutoOAS-action)) and AutoGuard-diff directly.
 ~~~yml
 include:
-  - local: 'AutoGuard.gitlab-ci.yml'
+  - remote: 'https://raw.githubusercontent.com/MSA-API-Management/AutoGuard/refs/tags/v1/AutoGuard.gitlab-ci.yml'
     inputs:
         mvn_src_dir: "."
 
