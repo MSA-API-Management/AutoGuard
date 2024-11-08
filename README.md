@@ -1,10 +1,11 @@
 # AutoGuard
 AutoGuard is a tool that automatically detects breaking changes of REST APIs in services developed with the popular Java Spring Boot framework.
 
-## Usage
-### GitHub action
+
+## GitHub action 
 The action uses AutoGuard-spec (currently implemented with [AutoOAS](https://github.com/MSA-API-Management/AutoOAS-action)) and [AutoGuard-diff](https://github.com/MSA-API-Management/AutoGuard-diff-action) to find breaking REST API changes in Java Spring Boot web services.
 
+### Usage
 ~~~yml
 - uses: MSA-API-Management/AutoGuard@v1
   with:
@@ -19,8 +20,10 @@ The action uses AutoGuard-spec (currently implemented with [AutoOAS](https://git
     head_ref:
 ~~~
 
-### GitLab template
+## GitLab template
 The template implements the AutoGuard-spec (again implemented with [AutoOAS](https://github.com/MSA-API-Management/AutoOAS-action)) and AutoGuard-diff directly.
+
+### Usage
 ~~~yml
 include:
   - remote: 'https://raw.githubusercontent.com/MSA-API-Management/AutoGuard/refs/tags/v1/AutoGuard.gitlab-ci.yml'
