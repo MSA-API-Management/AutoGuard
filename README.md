@@ -11,7 +11,7 @@ The action uses AutoGuard-spec (currently implemented with [AutoOAS](https://git
   with:
     # Path to the Maven source directory
     # default: '${{github.workspace}}'
-    mvn_src_path:
+    source_dir:
     # The branch, tag or commit SHA of the old API version
     # default: '${{github.base_ref}}' (Base branch reference of a pull request)
     base_ref:
@@ -28,7 +28,7 @@ The template implements the AutoGuard-spec (again implemented with [AutoOAS](htt
 include:
   - remote: 'https://raw.githubusercontent.com/MSA-API-Management/AutoGuard/refs/tags/v1/AutoGuard.gitlab-ci.yml'
     inputs:
-        mvn_src_dir: "."
+        source_dir: "."
 
 # Extend .autoGuard job to add configuration like a job rule or stage 
 autoGuard:
