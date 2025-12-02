@@ -15,7 +15,7 @@ runs:
     - uses: actions/checkout@v6
       with:
         ref: '${{inputs.base_ref}}'
-    - uses: MSA-API-Management/AutoOAS-action@v1.1
+    - uses: MSA-API-Management/AutoOAS-action@v1.2
       with:
         source_dir: ${{inputs.source_dir}}
         artifact_name: 'base-OpenAPI'
@@ -23,7 +23,7 @@ runs:
     - uses: actions/checkout@v6
       with: 
         ref: '${{inputs.head_ref}}'
-    - uses: MSA-API-Management/AutoOAS-action@v1.1
+    - uses: MSA-API-Management/AutoOAS-action@v1.2
       with:
         source_dir: ${{inputs.source_dir}}
         artifact_name: 'head-OpenAPI'
