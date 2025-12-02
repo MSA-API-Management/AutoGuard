@@ -1,5 +1,5 @@
 name: 'AutoGuard'
-description: 'AutoGuard finds breaking API changes in Spring REST APIs during pull requests'
+description: 'AutoGuard finds breaking API changes in Spring Boot and JAX-RS REST APIs during pull requests'
 inputs:
   source_dir:
     default: '${{github.workspace}}'
@@ -12,23 +12,23 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: '${{inputs.base_ref}}'
-    - uses: MSA-API-Management/AutoOAS-action@v1
+    - uses: MSA-API-Management/AutoOAS-action@v1.1
       with:
         source_dir: ${{inputs.source_dir}}
         artifact_name: 'base-OpenAPI'
     - uses: AutoModality/action-clean@v1
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with: 
         ref: '${{inputs.head_ref}}'
-    - uses: MSA-API-Management/AutoOAS-action@v1
+    - uses: MSA-API-Management/AutoOAS-action@v1.1
       with:
         source_dir: ${{inputs.source_dir}}
         artifact_name: 'head-OpenAPI'
     - uses: AutoModality/action-clean@v1
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v6
     - uses: MSA-API-Management/AutoGuard-diff-action@v1
       with:
         old_dir: 'base-OpenAPI'
