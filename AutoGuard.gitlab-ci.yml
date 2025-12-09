@@ -15,16 +15,16 @@ spec:
     - docker:dind
   
   before_script:
-    - docker pull alexx882/auto-oas:1.0
+    - docker pull alexx882/auto-oas:1.2
     - docker pull openapitools/openapi-diff:latest
   script: 
     - git fetch
 
     - git checkout $[[inputs.base_ref]]
-    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.0 /project /project/autooas-$[[inputs.base_ref]]/oas
+    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.base_ref]]/oas
 
     - git checkout $[[inputs.head_ref]]
-    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.0 /project /project/autooas-$[[inputs.head_ref]]/oas
+    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.head_ref]]/oas
 
 
     - |
