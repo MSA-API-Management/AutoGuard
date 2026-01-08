@@ -8,8 +8,8 @@ spec:
       type: string 
       default: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
     fail_on_breaking:
-      type: boolean
-      default: true
+      type: string
+      default: "true"
       description: "If true, pipeline fails on breaking changes. If false, breaking changes are reported and then passed"
 ---
 
