@@ -7,31 +7,38 @@ spec:
     head_ref:
       type: string 
       default: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    fail_on_breaking:
+      type: boolean
+      default: true
+      description: "If true, pipeline fails on breaking changes. If false, breaking changes are reported and then passed"
 ---
 
 .autoGuard:
-  image: "docker"
+  image: "docker:latest"
   services:
     - docker:dind
-  
+  variables:
+    DOCKER_DRIVER: overlay2
+
   before_script:
     - docker pull alexx882/auto-oas:1.2
     - docker pull openapitools/openapi-diff:latest
+    - apk add --no-cache git
   script: 
-    - git fetch
+    - git fetch --all
 
     - git checkout $[[inputs.base_ref]]
-    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.base_ref]]/oas
+    - docker run -v "$(pwd)/$[[ inputs.source_dir ]]":/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.base_ref]]/oas
 
     - git checkout $[[inputs.head_ref]]
-    - docker run -v $[[ inputs.source_dir ]]:/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.head_ref]]/oas
+    - docker run -v "$(pwd)/$[[ inputs.source_dir ]]":/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.head_ref]]/oas
 
 
     - |
       OLD_DIR=autooas-$[[inputs.base_ref]]
       NEW_DIR=autooas-$[[inputs.head_ref]]
 
-      set +e
+      # set +e
       EMPTY_OAS='{  "openapi" : "3.0.1",  "info" : {    "title" : "",    "description" : "Spring Profile: ???",    "version" : ""  },  "paths" : {  },    "components" : {    "schemas" : {    }  }}'
       
       echo $EMPTY_OAS > empty.json
@@ -46,50 +53,64 @@ spec:
       OTHER_FILES=$(comm -3 old_files new_files)
 
       STATUS=0
+
+      mkdir -p oas_diff
+
+      run_diff() {
+        local name=$1
+        local old_path=$2
+        local new_path=$3
+
+        echo "Diffing $name..."
+
+        set +e
+
+        docker run --rm \
+          -v "$(pwd):/specs" \
+          openapitools/openapi-diff:latest \
+          --fail-on-incompatible \
+          --html "/specs/oas_diff/$name.html" \
+          --markdown "/specs/oas_diff/$name.md" \
+          "/specs/$old_path" "/specs/$new_path"
+
+        EXIT_CODE=$?
+
+        set -e
+
+        if [ $EXIT_CODE -ne 0 ]; then
+          echo -e "\e[31mBreaking change detected in $name\e[0m"
+          return 1
+        fi
+        return 0
+      }
       
-      mkdir oas_diff
       
       for p in $COMMON_FILES; do
-        printf "\x20\n\x20\nAnalyzing existing configuration $p\n"
-        docker run --rm -t \
-          -v $(pwd):/specs \
-          openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/$OLD_DIR/$p /specs/$NEW_DIR/$p
-        EXIT_CODE=$?
-        if [ $EXIT_CODE -eq 1 ]; then
-          echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
-        fi
-        STATUS=$((STATUS + EXIT_CODE))
+        run_diff "$p" "$OLD_DIR/$p" $NEW_DIR/$p
+        STATUS=$((STATUS + $?))
       done
 
       for p in $OTHER_FILES; do
         if [ -f "$OLD_DIR/$p" ]; then
-          printf "\x20\n\x20\nAnalyzing deleted configuration $p\n"
-          docker run --rm -t \
-            -v $(pwd):/specs \
-            openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/$OLD_DIR/$p /specs/empty.json
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 1 ]; then
-            echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
-          fi
-          STATUS=$((STATUS + EXIT_CODE))
+          run_diff "$p" "$OLD_DIR/$p" "empty.json"
         else
-          printf "\x20\n\x20\nAnalyzing added configuration $p\n"
-          docker run --rm -t \
-            -v $(pwd):/specs \
-            openapitools/openapi-diff:latest --fail-on-incompatible --html "/specs/oas_diff/$p.html" /specs/empty.json /specs/$NEW_DIR/$p
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 1 ]; then
-            echo -e "\e[31mBreaking changes detected in profile $p\033[37m"
-          fi
-          STATUS=$((STATUS + EXIT_CODE))
+          run_diff "$p" "empty.json" "$NEW_DIR/$p"
         fi
+        STATUS=$((STATUS + $?))
       done
-      
-      set -e
 
-      if [ $STATUS -gt 0 ]; then 
-        echo -e "\e[31mBreaking changes detected"
-        exit 1
+      if [ $STATUS -gt 0 ]; then
+        echo -e "\e[31mTotal breaking changes: $STATUS\e[0m"
+        if [[ "$[[ inputs.fail_on_breaking ]]" == "true" ]]; then
+          echo "Fail on breaking is ENABLED. Failing job."
+          exit 1
+        else
+          echo "Fail on breaking is DISABLED. Job passes with warnings."
+          exit 0
+        fi
+      else
+        echo -e "\e[32mNo breaking changes found.\e[0m"
+        exit 0
       fi
 
   artifacts:
