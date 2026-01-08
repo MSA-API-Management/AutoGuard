@@ -38,9 +38,7 @@ spec:
       OLD_DIR=autooas-$[[inputs.base_ref]]
       NEW_DIR=autooas-$[[inputs.head_ref]]
 
-      # set +e
       EMPTY_OAS='{  "openapi" : "3.0.1",  "info" : {    "title" : "",    "description" : "Spring Profile: ???",    "version" : ""  },  "paths" : {  },    "components" : {    "schemas" : {    }  }}'
-      
       echo $EMPTY_OAS > empty.json
       
       OLD_FILES=$(find "$OLD_DIR" -type f | sed "s|$OLD_DIR/||" | sort)
