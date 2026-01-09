@@ -69,15 +69,24 @@ spec:
 
         set +e
 
-        docker run --rm \
+        STATE=$(docker run --rm \
           -v "$(pwd):/specs" \
           openapitools/openapi-diff:latest \
+          --state \
           --fail-on-incompatible \
           --html "/specs/oas_diff/$name.html" \
           --markdown "/specs/oas_diff/$name.md" \
-          "/specs/$old_path" "/specs/$new_path"
+          "/specs/$old_path" "/specs/$new_path" 2>/dev/null)
 
         EXIT_CODE=$?
+
+        STATE=$(echo "$STATE" | tr -d '\r')
+
+        if [ "$STATE" == "no_changes" ]; then
+             echo "No changes detected. Removing report files."
+             rm -f "oas_diff/$name.html"
+             rm -f "oas_diff/$name.md"
+        fi
 
         set -e
 
