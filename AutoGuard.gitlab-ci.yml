@@ -27,18 +27,24 @@ spec:
   script: 
     - git fetch --all
 
+    - mkdir -p autooas-base
+    - mkdir -p autooas-head
+    - chmod -R 777 autooas-base autooas-head
+
     - git checkout $[[inputs.base_ref]]
-    - docker run -v "$(pwd)/$[[ inputs.source_dir ]]":/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.base_ref]]/oas
+    - echo "Running Base Analysis..."
+
+    - docker run -v "$(pwd):/project" alexx882/auto-oas:1.2 "/project/$[[ inputs.source_dir ]]" /project/autooas-base/openapi
 
     - git checkout $[[inputs.head_ref]]
-    - docker run -v "$(pwd)/$[[ inputs.source_dir ]]":/project alexx882/auto-oas:1.2 /project /project/autooas-$[[inputs.head_ref]]/oas
-
+    - echo "Running Head Analysis..."
+    - docker run -v "$(pwd):/project" alexx882/auto-oas:1.2 "/project/$[[ inputs.source_dir ]]" /project/autooas-head/openapi
 
     - |
-      OLD_DIR=autooas-$[[inputs.base_ref]]
-      NEW_DIR=autooas-$[[inputs.head_ref]]
+      OLD_DIR=autooas-base
+      NEW_DIR=autooas-head
 
-      EMPTY_OAS='{  "openapi" : "3.0.1",  "info" : {    "title" : "",    "description" : "Spring Profile: ???",    "version" : ""  },  "paths" : {  },    "components" : {    "schemas" : {    }  }}'
+      EMPTY_OAS='{ "openapi": "3.0.1", "info": { "title": "", "version": "" }, "paths": {}, "components": { "schemas": {} } }'
       echo $EMPTY_OAS > empty.json
       
       OLD_FILES=$(find "$OLD_DIR" -type f | sed "s|$OLD_DIR/||" | sort)
@@ -82,7 +88,11 @@ spec:
         return 0
       }
       
-      
+      if [ -z "$COMMON_FILES" ] && [ -z "$OTHER_FILES" ]; then
+         echo "ERROR: No OpenAPI files were generated. Analysis failed."
+         exit 1
+      fi
+
       for p in $COMMON_FILES; do
         run_diff "$p" "$OLD_DIR/$p" $NEW_DIR/$p
         STATUS=$((STATUS + $?))
@@ -99,7 +109,7 @@ spec:
 
       if [ $STATUS -gt 0 ]; then
         echo -e "\e[31mTotal breaking changes: $STATUS\e[0m"
-        if [[ "$[[ inputs.fail_on_breaking ]]" == "true" ]]; then
+        if [ "$[[ inputs.fail_on_breaking ]]" = "true" ]; then
           echo "Fail on breaking is ENABLED. Failing job."
           exit 1
         else
@@ -115,6 +125,6 @@ spec:
     when: always
     name: "OpenAPI specifications"
     paths:
-      - "autooas-$[[inputs.base_ref]]/oas*"
-      - "autooas-$[[inputs.head_ref]]/oas*"
+      - "autooas-base/*.json"
+      - "autooas-head/*.json"
       - "oas_diff/*"
