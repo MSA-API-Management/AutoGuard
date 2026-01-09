@@ -121,7 +121,6 @@ spec:
       done
 
       if [ $STATUS -gt 0 ]; then
-        echo -e "\e[31mTotal breaking changes: $STATUS\e[0m"
         if [ "$[[ inputs.fail_on_breaking ]]" = "true" ]; then
           echo "Fail on breaking is ENABLED. Failing job."
           exit 1
