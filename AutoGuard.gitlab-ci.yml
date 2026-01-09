@@ -90,10 +90,16 @@ spec:
 
         set -e
 
-        if [ $EXIT_CODE -ne 0 ]; then
+        if [ $EXIT_CODE -ne 0 ] || [ "$STATE" == "incompatible" ]; then
           echo -e "\e[31mBreaking change detected in $name\e[0m"
           return 1
         fi
+
+        if [ "$STATE" == "compatible" ]; then
+           echo -e "\e[33mCompatible changes detected in $name\e[0m"
+           return 0
+        fi
+
         return 0
       }
       
@@ -103,17 +109,15 @@ spec:
       fi
 
       for p in $COMMON_FILES; do
-        run_diff "$p" "$OLD_DIR/$p" $NEW_DIR/$p
-        STATUS=$((STATUS + $?))
+        run_diff "$p" "$OLD_DIR/$p" $NEW_DIR/$p || STATUS=$((STATUS + 1))
       done
 
       for p in $OTHER_FILES; do
         if [ -f "$OLD_DIR/$p" ]; then
-          run_diff "$p" "$OLD_DIR/$p" "empty.json"
+          run_diff "$p" "$OLD_DIR/$p" "empty.json" || STATUS=$((STATUS + 1))
         else
-          run_diff "$p" "empty.json" "$NEW_DIR/$p"
+          run_diff "$p" "empty.json" "$NEW_DIR/$p" || STATUS=$((STATUS + 1))
         fi
-        STATUS=$((STATUS + $?))
       done
 
       if [ $STATUS -gt 0 ]; then
