@@ -34,7 +34,12 @@ spec:
     - git checkout $[[inputs.base_ref]]
     - echo "Running Base Analysis..."
 
-    - docker run -v "$(pwd):/project" alexx882/auto-oas:1.2 "/project/$[[ inputs.source_dir ]]" /project/autooas-base/openapi
+    - |
+      if [ -d "$[[ inputs.source_dir ]]" ]; then
+        docker run -v "$(pwd):/project" alexx882/auto-oas:1.2 "/project/$[[ inputs.source_dir ]]" /project/autooas-base/openapi
+      else
+        echo "Directory '$[[ inputs.source_dir ]]' not found in base ref, treating as new project."
+      fi
 
     - git checkout $[[inputs.head_ref]]
     - echo "Running Head Analysis..."
