@@ -22,7 +22,7 @@ spec:
 
   before_script:
     - docker pull alexx882/auto-oas:1.2
-    - docker pull openapitools/openapi-diff:latest
+    - docker pull djamn/openapi-diff:latest
     - apk add --no-cache git
   script: 
     - git fetch --all
