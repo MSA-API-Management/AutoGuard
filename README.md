@@ -22,6 +22,10 @@ The action uses AutoGuard-gen (currently implemented with [AutoOAS](https://gith
     # The branch, tag or commit SHA of the old API version
     # default: '${{github.head_ref}}' (Head branch reference of a pull request)
     head_ref:
+    # If true, the workflow fails when breaking changes are detected.
+    # If false, breaking changes are reported but the workflow succeeds.
+    # default: 'true'
+    fail_on_breaking:
 ~~~
 
 ## GitLab template
