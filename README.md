@@ -3,15 +3,19 @@ AutoGuard is a tool that automatically detects breaking changes of REST APIs in 
 
 We provide an example project with AutoGuard set up [on GitHub](https://github.com/MSA-API-Management/AutoGuard-example-project) and a demonstration video [on YouTube](https://www.youtube.com/watch?v=3qeWIVfMvWE).
 
-## AutoGuard v1.2 now supports JAX-RS
-Use `MSA-API-Management/AutoGuard@v1.2` to detect breaking changes of REST APIs developed with JAX-RS. 
+## AutoGuard v2
+Version 2 introduces updates to the underlying analysis logic, enhanced markdown reporting, and brings the `fail_on_breaking` toggle to GitLab CI/CD templates.
+*(Note: As a minor breaking change, generated OpenAPI specifications are now stored in static `autooas-base` and `autooas-head` artifact directories rather than dynamically named branch folders).*
+
+## AutoGuard v1.2
+AutoGuard now supports JAX-RS. Use `MSA-API-Management/AutoGuard@v1.2` to detect breaking changes of REST APIs developed with JAX-RS. 
 
 ## GitHub action 
 The action uses AutoGuard-gen (currently implemented with [AutoOAS](https://github.com/MSA-API-Management/AutoOAS-action)) and [AutoGuard-diff](https://github.com/MSA-API-Management/AutoGuard-diff-action) to find breaking REST API changes in Java Spring Boot web services.
 
 ### Usage
 ~~~yml
-- uses: MSA-API-Management/AutoGuard@v1
+- uses: MSA-API-Management/AutoGuard@v2
   with:
     # Path to the Maven source directory
     # default: '${{github.workspace}}'
@@ -34,7 +38,7 @@ The template implements the AutoGuard-spec (again implemented with [AutoOAS](htt
 ### Usage
 ~~~yml
 include:
-  - remote: 'https://raw.githubusercontent.com/MSA-API-Management/AutoGuard/refs/tags/v1/AutoGuard.gitlab-ci.yml'
+  - remote: 'https://raw.githubusercontent.com/MSA-API-Management/AutoGuard/refs/tags/v2/AutoGuard.gitlab-ci.yml'
     inputs:
         source_dir: "."
 
