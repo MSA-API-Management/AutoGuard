@@ -4,8 +4,8 @@ AutoGuard is a tool that automatically detects breaking changes of REST APIs in 
 We provide an example project with AutoGuard set up [on GitHub](https://github.com/MSA-API-Management/AutoGuard-example-project) and a demonstration video [on YouTube](https://www.youtube.com/watch?v=3qeWIVfMvWE).
 
 ## AutoGuard v2
-Version 2 introduces updates to the underlying analysis logic, enhanced markdown reporting, and brings the `fail_on_breaking` toggle to GitLab CI/CD templates.
-*(Note: As a minor breaking change, generated OpenAPI specifications are now stored in static `autooas-base` and `autooas-head` artifact directories rather than dynamically named branch folders).*
+Version 2 introduces changes to the underlying analysis logic, including Markdown reporting, and adds a `fail_on_breaking` toggle to the CI/CD templates.
+*(Note: As a minor breaking change, generated OpenAPI specifications are now stored in static `autooas-base` and `autooas-head` artifact directories instead of dynamically named branch directories).*
 
 ## AutoGuard v1.2
 AutoGuard now supports JAX-RS. Use `MSA-API-Management/AutoGuard@v1.2` to detect breaking changes of REST APIs developed with JAX-RS. 
