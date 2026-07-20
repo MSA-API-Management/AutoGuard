@@ -7,7 +7,9 @@ inputs:
     default: '${{github.base_ref}}'
   head_ref:
     default: '${{github.head_ref}}'
-    
+  fail_on_breaking:
+    description: 'If true, pipeline fails on breaking changes. If false, breaking changes are reported and then passed'
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -29,7 +31,8 @@ runs:
         artifact_name: 'head-OpenAPI'
     - uses: AutoModality/action-clean@v1
     - uses: actions/download-artifact@v6
-    - uses: MSA-API-Management/AutoGuard-diff-action@v1
+    - uses: MSA-API-Management/AutoGuard-diff-action@v1.3
       with:
         old_dir: 'base-OpenAPI'
         new_dir: 'head-OpenAPI'
+        fail_on_breaking: ${{inputs.fail_on_breaking}}
